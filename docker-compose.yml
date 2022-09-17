@@ -12,7 +12,7 @@ services:
     environment:
       PHP_IDE_CONFIG: "serverName=DevServer"
     volumes:
-      - ./:/symfony_app
+      - ./:/fram
       - ./.docker/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
     depends_on:
       - db
