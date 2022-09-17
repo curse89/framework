@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        - PHP_VERSION=${PHP_VERSION:-8.1.8}
+      dockerfile: .docker/php/Dockerfile
+    working_dir: /fram
+    user: ${UID:-1000}:${GID:-1000}
+    environment:
+      PHP_IDE_CONFIG: "serverName=DevServer"
+    volumes:
+      - ./:/symfony_app
+      - ./.docker/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+    depends_on:
+      - db
+    container_name: fram_app
+
+  db:
+    image: "postgres:${POSTGRES_VERSION:-14}"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: project
+      POSTGRES_USER: project
+      POSTGRES_DB: project
+    container_name: fram_db
+
+  web:
+    image: "nginx:${NGINX_VERSION:-1.21}"
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+    volumes:
+      - .docker/nginx/:/etc/nginx/conf.d
+    container_name: fram_nginx
