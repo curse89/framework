@@ -2,9 +2,12 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+use App\Simplex\Framework;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing;
+use Symfony\Component\HttpKernel\Controller\ControllerResolver;
+use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
 
 function render_template($request): Response
 {
@@ -22,15 +25,12 @@ $context = new Routing\RequestContext();
 $context->fromRequest($request);
 $matcher = new Routing\Matcher\UrlMatcher($routes, $context);
 
+$controllerResolver = new ControllerResolver();
+$argumentResolver = new ArgumentResolver();
+
 $path = $request->getPathInfo();
 
-try {
-    $request->attributes->add($matcher->match($request->getPathInfo()));
-    $response = call_user_func($request->attributes->get('_controller'), $request);
-} catch (Routing\Exception\ResourceNotFoundException $exception) {
-    $response = new Response('Not Found', 404);
-} catch (Exception $exception) {
-    $response = new Response('An error occurred', 500);
-}
+$framework = new Framework($matcher, $controllerResolver, $argumentResolver);
+$response = $framework->handle($request);
 
 $response->send();
